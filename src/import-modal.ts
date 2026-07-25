@@ -7,8 +7,8 @@ import {
   TextAreaComponent,
 } from "obsidian";
 import type WeChatChannelsImporterPlugin from "./main";
+import { runImport } from "./import-runner";
 import type { ImportOptions } from "./types";
-import { importVideo } from "./importer";
 
 export class ImportModal extends Modal {
   private sourceUrl = "";
@@ -120,30 +120,16 @@ export class ImportModal extends Modal {
     this.running = true;
     this.submitButton?.setDisabled(true);
     try {
-      const result = await importVideo(
-        this.app,
-        this.plugin.settings,
-        options,
-        (message) => {
-          if (this.progressEl) this.progressEl.setText(message);
-        },
-      );
+      const result = await runImport(this.plugin, options, (message) => {
+        if (this.progressEl) this.progressEl.setText(message);
+      });
 
       if (!result.reused) {
-        this.plugin.settings.importedSources[this.sourceUrl] = {
-          notePath: result.note.path,
-          importedAt: new Date().toISOString(),
-        };
-        this.plugin.settings.lastCategory = this.category;
-        this.plugin.settings.downloadVideo = this.downloadVideo;
-        this.plugin.settings.downloadCover = this.downloadCover;
-        await this.plugin.saveSettings();
         new Notice("视频号内容已保存到 Obsidian");
       } else {
         new Notice("这条视频已经导入，已打开原笔记");
       }
 
-      await this.app.workspace.getLeaf(true).openFile(result.note);
       this.running = false;
       this.close();
     } catch (error) {

@@ -37,3 +37,57 @@
   min-height: 1.5em;
   padding-top: 12px;
 }
+
+.wechat-channels-importer-view {
+  padding: 16px;
+}
+
+.wechat-channels-importer-view-header {
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+}
+
+.wechat-channels-importer-view-header h3 {
+  margin: 0 0 6px;
+}
+
+.wechat-channels-importer-view-header p {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.wechat-channels-importer-view .setting-item {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wechat-channels-importer-view .setting-item-info {
+  margin-right: 0;
+}
+
+.wechat-channels-importer-view .setting-item-control {
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.wechat-channels-importer-view textarea,
+.wechat-channels-importer-view select {
+  width: 100%;
+}
+
+.wechat-channels-importer-view textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.wechat-channels-importer-view-actions {
+  margin-top: 12px;
+}
+
+.wechat-channels-importer-view-actions button {
+  width: 100%;
+}

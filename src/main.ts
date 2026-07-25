@@ -1,5 +1,9 @@
-import { Plugin } from "obsidian";
+import { Notice, Plugin, WorkspaceLeaf } from "obsidian";
 import { ImportModal } from "./import-modal";
+import {
+  WECHAT_CHANNELS_IMPORTER_VIEW,
+  WeChatChannelsImporterView,
+} from "./import-view";
 import { WeChatChannelsImporterSettingTab } from "./settings-tab";
 import type { WeChatChannelsImporterSettings } from "./types";
 
@@ -20,17 +24,47 @@ export default class WeChatChannelsImporterPlugin extends Plugin {
   async onload(): Promise<void> {
     await this.loadSettings();
 
-    this.addRibbonIcon("video", "导入微信视频号", () => {
-      new ImportModal(this.app, this).open();
+    this.registerView(
+      WECHAT_CHANNELS_IMPORTER_VIEW,
+      (leaf) => new WeChatChannelsImporterView(leaf, this),
+    );
+
+    this.addRibbonIcon("video", "打开视频号 Input", () => {
+      void this.activateView();
+    });
+
+    this.addCommand({
+      id: "open-wechat-channels-importer-view",
+      name: "打开视频号 Input 侧边栏",
+      callback: () => void this.activateView(),
     });
 
     this.addCommand({
       id: "import-wechat-channels-video",
-      name: "导入微信视频号",
+      name: "用弹窗导入微信视频号",
       callback: () => new ImportModal(this.app, this).open(),
     });
 
     this.addSettingTab(new WeChatChannelsImporterSettingTab(this.app, this));
+  }
+
+  async activateView(): Promise<void> {
+    let leaf: WorkspaceLeaf | null =
+      this.app.workspace.getLeavesOfType(WECHAT_CHANNELS_IMPORTER_VIEW)[0] || null;
+
+    if (!leaf) {
+      leaf = this.app.workspace.getRightLeaf(false);
+      if (!leaf) {
+        new Notice("无法打开视频号 Input 侧边栏");
+        return;
+      }
+      await leaf.setViewState({
+        type: WECHAT_CHANNELS_IMPORTER_VIEW,
+        active: true,
+      });
+    }
+
+    await this.app.workspace.revealLeaf(leaf);
   }
 
   async loadSettings(): Promise<void> {
