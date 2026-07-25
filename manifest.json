@@ -1,0 +1,10 @@
+{
+  "id": "wechat-channels-importer",
+  "name": "WeChat Channels Importer",
+  "version": "1.0.0",
+  "minAppVersion": "1.5.0",
+  "description": "Import individual WeChat Channels videos, covers, metadata, and source links into your vault.",
+  "author": "xibao_classmate",
+  "authorUrl": "https://github.com/Iris-lover",
+  "isDesktopOnly": false
+}
