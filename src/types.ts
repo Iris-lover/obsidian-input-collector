@@ -9,8 +9,10 @@ export interface WeChatChannelsImporterSettings {
   categories: string[];
   lastCategory: string;
   parserEndpoint: string;
+  xApiEndpoint: string;
   downloadVideo: boolean;
   downloadCover: boolean;
+  downloadXMedia: boolean;
   importedSources: Record<string, ImportedRecord>;
 }
 
@@ -19,6 +21,12 @@ export interface ImportOptions {
   category: string;
   downloadVideo: boolean;
   downloadCover: boolean;
+}
+
+export interface XImportOptions {
+  sourceUrl: string;
+  category: string;
+  downloadMedia: boolean;
 }
 
 export interface AuthorInfo {

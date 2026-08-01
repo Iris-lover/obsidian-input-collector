@@ -8,13 +8,15 @@ import { WeChatChannelsImporterSettingTab } from "./settings-tab";
 import type { WeChatChannelsImporterSettings } from "./types";
 
 const DEFAULT_SETTINGS: WeChatChannelsImporterSettings = {
-  defaultFolder: "WeChat Channels",
+  defaultFolder: "6-Input",
   mediaFolder: "_attachments/wechat-channels",
-  categories: ["Inbox"],
-  lastCategory: "Inbox",
+  categories: ["AI", "Design", "Work", "English", "Earn money", "Content"],
+  lastCategory: "Earn money",
   parserEndpoint: "https://sph.litao.workers.dev/api/fetch_video_profile",
+  xApiEndpoint: "https://api.fxtwitter.com",
   downloadVideo: true,
   downloadCover: true,
+  downloadXMedia: true,
   importedSources: {},
 };
 
@@ -29,13 +31,13 @@ export default class WeChatChannelsImporterPlugin extends Plugin {
       (leaf) => new WeChatChannelsImporterView(leaf, this),
     );
 
-    this.addRibbonIcon("video", "打开视频号 Input", () => {
+    this.addRibbonIcon("inbox", "打开 Input Collector", () => {
       void this.activateView();
     });
 
     this.addCommand({
       id: "open-wechat-channels-importer-view",
-      name: "打开视频号 Input 侧边栏",
+      name: "打开 Input Collector 侧边栏",
       callback: () => void this.activateView(),
     });
 
@@ -55,7 +57,7 @@ export default class WeChatChannelsImporterPlugin extends Plugin {
     if (!leaf) {
       leaf = this.app.workspace.getRightLeaf(false);
       if (!leaf) {
-        new Notice("无法打开视频号 Input 侧边栏");
+        new Notice("无法打开 Input Collector 侧边栏");
         return;
       }
       await leaf.setViewState({

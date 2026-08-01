@@ -1,9 +1,9 @@
 {
   "id": "wechat-channels-importer",
-  "name": "WeChat Channels Importer",
-  "version": "1.1.0",
+  "name": "Input Collector",
+  "version": "1.2.0",
   "minAppVersion": "1.5.0",
-  "description": "Import individual WeChat Channels videos, covers, metadata, and source links into your vault.",
+  "description": "Import individual WeChat Channels videos and public X posts with media and metadata.",
   "author": "xibao_classmate",
   "authorUrl": "https://github.com/Iris-lover",
   "isDesktopOnly": false

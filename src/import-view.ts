@@ -8,15 +8,20 @@ import {
 } from "obsidian";
 import type WeChatChannelsImporterPlugin from "./main";
 import { runImport } from "./import-runner";
-import type { ImportOptions } from "./types";
+import type { ImportOptions, XImportOptions } from "./types";
+import { extractXLink } from "./x-parser";
+import { runXImport } from "./x-import-runner";
 
 export const WECHAT_CHANNELS_IMPORTER_VIEW = "wechat-channels-importer-view";
+type InputPlatform = "wechat" | "x";
 
 export class WeChatChannelsImporterView extends ItemView {
+  private platform: InputPlatform = "wechat";
   private sourceUrl = "";
   private category = "";
   private downloadVideo = true;
   private downloadCover = true;
+  private downloadXMedia = true;
   private sourceInput: TextAreaComponent | null = null;
   private submitButton: ButtonComponent | null = null;
   private progressEl: HTMLElement | null = null;
@@ -34,14 +39,21 @@ export class WeChatChannelsImporterView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "视频号 Input";
+    return "Input Collector";
   }
 
   getIcon(): string {
-    return "video";
+    return "inbox";
   }
 
   async onOpen(): Promise<void> {
+    this.category =
+      this.plugin.settings.lastCategory ||
+      this.plugin.settings.categories[0] ||
+      "Inbox";
+    this.downloadVideo = this.plugin.settings.downloadVideo;
+    this.downloadCover = this.plugin.settings.downloadCover;
+    this.downloadXMedia = this.plugin.settings.downloadXMedia;
     this.render();
   }
 
@@ -54,28 +66,40 @@ export class WeChatChannelsImporterView extends ItemView {
     contentEl.empty();
     contentEl.addClass("wechat-channels-importer-view");
 
-    this.category =
-      this.plugin.settings.lastCategory ||
-      this.plugin.settings.categories[0] ||
-      "Inbox";
-    this.downloadVideo = this.plugin.settings.downloadVideo;
-    this.downloadCover = this.plugin.settings.downloadCover;
-
     const header = contentEl.createDiv({
       cls: "wechat-channels-importer-view-header",
     });
-    header.createEl("h3", { text: "视频号 Input" });
+    header.createEl("h3", { text: "Input Collector" });
     header.createEl("p", {
-      text: "粘贴一条视频号分享链接，把视频、封面和原文一起收进 Obsidian。",
+      text: "把视频号与 X 的单条内容统一收进 Obsidian。",
     });
 
     new Setting(contentEl)
-      .setName("分享链接")
-      .setDesc("支持 weixin.qq.com/sph/…")
+      .setName("来源")
+      .setDesc("选择要导入的平台")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("wechat", "微信视频号")
+          .addOption("x", "X")
+          .setValue(this.platform)
+          .onChange((value) => {
+            this.platform = value as InputPlatform;
+            this.render();
+          }),
+      );
+
+    const isX = this.platform === "x";
+    new Setting(contentEl)
+      .setName(isX ? "X 帖子链接" : "视频号分享链接")
+      .setDesc(isX ? "支持 x.com 或 twitter.com 的 status 链接" : "支持 weixin.qq.com/sph/…")
       .addTextArea((text) => {
         this.sourceInput = text;
         text
-          .setPlaceholder("https://weixin.qq.com/sph/…")
+          .setPlaceholder(
+            isX
+              ? "https://x.com/username/status/…"
+              : "https://weixin.qq.com/sph/…",
+          )
           .setValue(this.sourceUrl)
           .onChange((value) => {
             this.sourceUrl = value.trim();
@@ -94,79 +118,104 @@ export class WeChatChannelsImporterView extends ItemView {
         });
       });
 
-    new Setting(contentEl)
-      .setName("下载视频")
-      .setDesc("保存 MP4，避免临时地址失效")
-      .addToggle((toggle) =>
-        toggle.setValue(this.downloadVideo).onChange((value) => {
-          this.downloadVideo = value;
-        }),
-      );
-
-    new Setting(contentEl)
-      .setName("下载封面")
-      .setDesc("封面失败不会影响笔记导入")
-      .addToggle((toggle) =>
-        toggle.setValue(this.downloadCover).onChange((value) => {
-          this.downloadCover = value;
-        }),
-      );
+    if (isX) {
+      new Setting(contentEl)
+        .setName("下载 X 媒体")
+        .setDesc("把图片、GIF 和视频保存到 Vault")
+        .addToggle((toggle) =>
+          toggle.setValue(this.downloadXMedia).onChange((value) => {
+            this.downloadXMedia = value;
+          }),
+        );
+    } else {
+      new Setting(contentEl)
+        .setName("下载视频")
+        .setDesc("保存 MP4，避免临时地址失效")
+        .addToggle((toggle) =>
+          toggle.setValue(this.downloadVideo).onChange((value) => {
+            this.downloadVideo = value;
+          }),
+        );
+      new Setting(contentEl)
+        .setName("下载封面")
+        .setDesc("封面失败不会影响笔记导入")
+        .addToggle((toggle) =>
+          toggle.setValue(this.downloadCover).onChange((value) => {
+            this.downloadCover = value;
+          }),
+        );
+    }
 
     contentEl.createDiv({
       cls: "wechat-channels-importer-disclosure",
-      text: `解析时，分享链接会发送到 ${this.plugin.settings.parserEndpoint}。`,
+      text: isX
+        ? `X 链接会发送到 ${this.plugin.settings.xApiEndpoint} 解析。媒体随后从 X CDN 下载。`
+        : `视频号链接会发送到 ${this.plugin.settings.parserEndpoint} 解析。视频随后从微信 CDN 下载。`,
     });
 
     this.progressEl = contentEl.createDiv({
       cls: "wechat-channels-importer-progress",
       attr: { "aria-live": "polite" },
     });
-
     const actions = contentEl.createDiv({
       cls: "wechat-channels-importer-view-actions",
     });
     this.submitButton = new ButtonComponent(actions)
-      .setButtonText("导入到 Obsidian")
+      .setButtonText(`导入${isX ? " X" : "视频号"}内容`)
       .setCta()
       .onClick(() => void this.submit());
   }
 
   private async submit(): Promise<void> {
     if (this.running) return;
-    if (!/^https:\/\/weixin\.qq\.com\/sph\/[A-Za-z0-9_-]+/.test(this.sourceUrl)) {
-      new Notice("请输入有效的微信视频号分享链接");
-      this.progressEl?.setText("链接格式不正确，请重新粘贴。");
+    const isX = this.platform === "x";
+    const valid = isX
+      ? extractXLink(this.sourceUrl) !== null
+      : /^https:\/\/weixin\.qq\.com\/sph\/[A-Za-z0-9_-]+/.test(this.sourceUrl);
+    if (!valid) {
+      const message = isX ? "请输入有效的 X 帖子链接" : "请输入有效的视频号分享链接";
+      new Notice(message);
+      this.progressEl?.setText(message);
       return;
     }
-
-    const options: ImportOptions = {
-      sourceUrl: this.sourceUrl,
-      category: this.category,
-      downloadVideo: this.downloadVideo,
-      downloadCover: this.downloadCover,
-    };
 
     this.running = true;
     this.submitButton?.setDisabled(true);
     try {
-      const result = await runImport(this.plugin, options, (message) => {
-        this.progressEl?.setText(message);
-      });
+      const result = isX
+        ? await runXImport(
+            this.plugin,
+            {
+              sourceUrl: this.sourceUrl,
+              category: this.category,
+              downloadMedia: this.downloadXMedia,
+            } satisfies XImportOptions,
+            (message) => this.progressEl?.setText(message),
+          )
+        : await runImport(
+            this.plugin,
+            {
+              sourceUrl: this.sourceUrl,
+              category: this.category,
+              downloadVideo: this.downloadVideo,
+              downloadCover: this.downloadCover,
+            } satisfies ImportOptions,
+            (message) => this.progressEl?.setText(message),
+          );
 
       if (result.reused) {
-        this.progressEl?.setText("这条视频已经导入，已打开原笔记。");
-        new Notice("这条视频已经导入，已打开原笔记");
+        this.progressEl?.setText("这条内容已经导入，已打开原笔记。");
+        new Notice("这条内容已经导入，已打开原笔记");
       } else {
         this.progressEl?.setText(`已保存：${result.note.path}`);
-        new Notice("视频号内容已保存到 Obsidian");
+        new Notice(`${isX ? "X" : "视频号"}内容已保存到 Obsidian`);
       }
-
       this.sourceUrl = "";
       this.sourceInput?.setValue("");
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.progressEl?.setText(`导入失败：${message}`);
-      new Notice(`视频号导入失败：${message}`, 8000);
+      new Notice(`导入失败：${message}`, 8000);
     } finally {
       this.running = false;
       this.submitButton?.setDisabled(false);

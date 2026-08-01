@@ -59,3 +59,31 @@ export function escapeHtml(value: string): string {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 }
+
+export function extensionForMedia(
+  url: string,
+  type: "photo" | "video" | "gif",
+  format: string,
+): string {
+  const normalized = format
+    .toLowerCase()
+    .replace(/^image\//, "")
+    .replace(/^video\//, "");
+  if (/^[a-z0-9]{2,5}$/.test(normalized)) {
+    return normalized === "jpeg" ? "jpg" : normalized;
+  }
+  try {
+    const match = new URL(url).pathname.match(/\.([a-zA-Z0-9]{2,5})$/);
+    if (match) return match[1].toLowerCase().replace("jpeg", "jpg");
+  } catch {
+    // Fall through to a type-based extension.
+  }
+  return type === "photo" ? "jpg" : "mp4";
+}
+
+export function markdownBlockquote(value: string): string {
+  return value
+    .split(/\r?\n/)
+    .map((line) => `> ${line}`)
+    .join("\n");
+}

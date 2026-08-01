@@ -1,7 +1,7 @@
 {
   "name": "obsidian-wechat-channels-importer",
-  "version": "1.1.0",
-  "description": "Import individual WeChat Channels videos into an Obsidian vault.",
+  "version": "1.2.0",
+  "description": "Import WeChat Channels videos and public X posts into an Obsidian vault.",
   "main": "main.js",
   "scripts": {
     "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
