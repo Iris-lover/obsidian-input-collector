@@ -16,6 +16,7 @@ export interface QuotedXPost {
 export interface ParsedXPost {
   sourceUrl: string;
   sourceId: string;
+  title: string;
   text: string;
   authorName: string;
   authorHandle: string;
@@ -29,6 +30,31 @@ export interface ParsedXPost {
   views: number | null;
   media: ParsedXMedia[];
   quote: QuotedXPost | null;
+  isArticle: boolean;
+}
+
+export interface FxArticleMediaInfo {
+  __typename?: string;
+  original_img_url?: string;
+}
+
+export interface FxArticleMedia {
+  media_info?: FxArticleMediaInfo;
+}
+
+export interface FxArticleBlock {
+  text?: string;
+  type?: string;
+}
+
+export interface FxArticle {
+  title?: string;
+  preview_text?: string;
+  cover_media?: FxArticleMedia;
+  media_entities?: FxArticleMedia[];
+  content?: {
+    blocks?: FxArticleBlock[];
+  };
 }
 
 export interface FxMediaItem {
@@ -44,6 +70,9 @@ export interface FxPost {
   id?: string;
   url?: string;
   text?: string;
+  raw_text?: {
+    text?: string;
+  };
   created_at?: string;
   created_timestamp?: number;
   lang?: string;
@@ -63,6 +92,7 @@ export interface FxPost {
     videos?: FxMediaItem[];
   };
   quote?: FxPost;
+  article?: FxArticle;
 }
 
 export interface FxResponse {

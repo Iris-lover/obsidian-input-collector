@@ -3,6 +3,7 @@ import type {
   FxMediaItem,
   FxPost,
   FxResponse,
+  FxArticle,
   ParsedXMedia,
   ParsedXPost,
   QuotedXPost,
@@ -50,7 +51,63 @@ function parseMedia(post: FxPost): ParsedXMedia[] {
   const videos = (post.media?.videos || [])
     .map((item) => mediaFromItem(item, "video"))
     .filter((item): item is ParsedXMedia => item !== null);
-  return [...photos, ...videos];
+  const articleImageUrls = [
+    post.article?.cover_media?.media_info?.original_img_url,
+    ...(post.article?.media_entities || []).map(
+      (item) => item.media_info?.original_img_url,
+    ),
+  ].filter((url): url is string => Boolean(url));
+  const articleImages = articleImageUrls.map((url): ParsedXMedia => ({
+    type: "photo",
+    url,
+    thumbnailUrl: "",
+    altText: post.article?.title || "X Article 图片",
+    format: "jpg",
+  }));
+  const unique = new Map<string, ParsedXMedia>();
+  for (const media of [...photos, ...videos, ...articleImages]) {
+    if (!unique.has(media.url)) unique.set(media.url, media);
+  }
+  return Array.from(unique.values());
+}
+
+function articleToMarkdown(article: FxArticle | undefined): string {
+  if (!article) return "";
+  const blocks = article.content?.blocks || [];
+  const lines: string[] = [];
+  for (const block of blocks) {
+    const text = (block.text || "").trim();
+    if (!text || block.type === "atomic") continue;
+    switch (block.type) {
+      case "header-one":
+        lines.push(`# ${text}`);
+        break;
+      case "header-two":
+        lines.push(`## ${text}`);
+        break;
+      case "header-three":
+        lines.push(`### ${text}`);
+        break;
+      case "ordered-list-item":
+        lines.push(`1. ${text}`);
+        break;
+      case "unordered-list-item":
+        lines.push(`- ${text}`);
+        break;
+      case "blockquote":
+        lines.push(
+          text
+            .split(/\r?\n/)
+            .map((line) => `> ${line}`)
+            .join("\n"),
+        );
+        break;
+      default:
+        lines.push(text);
+    }
+    lines.push("");
+  }
+  return lines.join("\n").trim() || article.preview_text?.trim() || "";
 }
 
 function parseQuote(post: FxPost | undefined): QuotedXPost | null {
@@ -101,12 +158,20 @@ export async function parseXPost(
   }
 
   const post = payload.tweet || payload.status;
-  if (!post?.id || !post.text) throw new Error("解析结果中没有帖子正文");
+  if (!post?.id) throw new Error("解析结果中没有帖子 ID");
+  const articleBody = articleToMarkdown(post.article);
+  const text = post.text?.trim() || articleBody || post.article?.preview_text?.trim() || "";
+  if (!text) throw new Error("解析结果中没有帖子正文");
   const authorHandle = post.author?.screen_name || link.username;
+  const title =
+    post.article?.title?.trim() ||
+    text.split(/\r?\n/).find((line) => line.trim()) ||
+    `@${authorHandle} 的帖子`;
   return {
     sourceUrl: post.url || `https://x.com/${authorHandle}/status/${post.id}`,
     sourceId: post.id,
-    text: post.text.trim(),
+    title,
+    text,
     authorName: post.author?.name || authorHandle,
     authorHandle,
     createdAt: parseDate(post),
@@ -119,6 +184,7 @@ export async function parseXPost(
     views: post.views ?? null,
     media: parseMedia(post),
     quote: parseQuote(post.quote),
+    isArticle: Boolean(post.article),
   };
 }
 

@@ -46,7 +46,7 @@ function buildMarkdown(
   options: XImportOptions,
   mediaPaths: string[],
 ): string {
-  const titleText = sanitizeFilename(parsed.text.split(/\r?\n/)[0], 54);
+  const titleText = sanitizeFilename(parsed.title, 72);
   const title = `@${parsed.authorHandle}：${titleText}`;
   const lines = [
     "---",
@@ -60,6 +60,7 @@ function buildMarkdown(
     `imported_at: ${yamlString(formatDateTime(new Date()))}`,
     `category: ${yamlString(options.category)}`,
     `language: ${yamlString(parsed.language)}`,
+    `content_type: ${yamlString(parsed.isArticle ? "article" : "post")}`,
     `likes: ${parsed.likes ?? "null"}`,
     `reposts: ${parsed.reposts ?? "null"}`,
     `replies: ${parsed.replies ?? "null"}`,
@@ -116,7 +117,7 @@ async function uniqueNotePath(
   folder: string,
   parsed: ParsedXPost,
 ): Promise<string> {
-  const snippet = sanitizeFilename(parsed.text.split(/\r?\n/)[0], 52);
+  const snippet = sanitizeFilename(parsed.title, 64);
   const base = `[X]@${sanitizeFilename(parsed.authorHandle, 24)} ${snippet}`;
   let candidate = joinVaultPath(folder, `${base}.md`);
   let index = 2;
