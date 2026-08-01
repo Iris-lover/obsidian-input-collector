@@ -1,5 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type WeChatChannelsImporterPlugin from "./main";
+import { GroupManagerModal } from "./group-manager-modal";
 
 export class WeChatChannelsImporterSettingTab extends PluginSettingTab {
   constructor(
@@ -15,7 +16,7 @@ export class WeChatChannelsImporterSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("默认保存目录")
-      .setDesc("分类文件夹会创建在这个目录下")
+      .setDesc("分组文件夹会创建在这个目录下")
       .addText((text) =>
         text
           .setPlaceholder("6-Input")
@@ -41,24 +42,12 @@ export class WeChatChannelsImporterSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("分类")
-      .setDesc("每行一个分类；分类文件夹会创建在默认保存目录下")
-      .addTextArea((text) =>
-        text
-          .setValue(this.plugin.settings.categories.join("\n"))
-          .onChange(async (value) => {
-            const categories = value
-              .split(/\r?\n/)
-              .map((item) => item.trim())
-              .filter(Boolean);
-            if (categories.length > 0) {
-              this.plugin.settings.categories = Array.from(new Set(categories));
-              if (!this.plugin.settings.categories.includes(this.plugin.settings.lastCategory)) {
-                this.plugin.settings.lastCategory = this.plugin.settings.categories[0];
-              }
-              await this.plugin.saveSettings();
-            }
-          }),
+      .setName("分组")
+      .setDesc(`${this.plugin.settings.categories.length} 个分组；新增、重命名或移除`)
+      .addButton((button) =>
+        button.setButtonText("管理分组").onClick(() => {
+          new GroupManagerModal(this.app, this.plugin, () => this.display()).open();
+        }),
       );
 
     new Setting(containerEl)

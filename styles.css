@@ -79,6 +79,10 @@
   width: 100%;
 }
 
+.wechat-channels-importer-view .setting-item-control select {
+  flex: 1;
+}
+
 .wechat-channels-importer-view textarea {
   min-height: 112px;
   resize: vertical;
@@ -90,4 +94,18 @@
 
 .wechat-channels-importer-view-actions button {
   width: 100%;
+}
+
+.input-collector-group-manager h4 {
+  margin: 24px 0 8px;
+}
+
+.input-collector-group-row .setting-item-control {
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.input-collector-group-row input {
+  flex: 1;
+  min-width: 0;
 }

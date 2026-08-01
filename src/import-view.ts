@@ -11,6 +11,7 @@ import { runImport } from "./import-runner";
 import type { ImportOptions, XImportOptions } from "./types";
 import { extractXLink } from "./x-parser";
 import { runXImport } from "./x-import-runner";
+import { GroupManagerModal } from "./group-manager-modal";
 
 export const WECHAT_CHANNELS_IMPORTER_VIEW = "wechat-channels-importer-view";
 type InputPlatform = "wechat" | "x";
@@ -107,8 +108,8 @@ export class WeChatChannelsImporterView extends ItemView {
       });
 
     new Setting(contentEl)
-      .setName("分类")
-      .setDesc(`保存到 ${this.plugin.settings.defaultFolder}/分类`)
+      .setName("分组")
+      .setDesc(`保存到 ${this.plugin.settings.defaultFolder}/分组`)
       .addDropdown((dropdown) => {
         for (const category of this.plugin.settings.categories) {
           dropdown.addOption(category, category);
@@ -116,7 +117,18 @@ export class WeChatChannelsImporterView extends ItemView {
         dropdown.setValue(this.category).onChange((value) => {
           this.category = value;
         });
-      });
+      })
+      .addExtraButton((button) =>
+        button
+          .setIcon("settings-2")
+          .setTooltip("新增和管理分组")
+          .onClick(() => {
+            new GroupManagerModal(this.app, this.plugin, (selectedGroup) => {
+              this.category = selectedGroup;
+              this.render();
+            }).open();
+          }),
+      );
 
     if (isX) {
       new Setting(contentEl)

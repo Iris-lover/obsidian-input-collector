@@ -50,8 +50,8 @@ export class ImportModal extends Modal {
       });
 
     new Setting(contentEl)
-      .setName("分类")
-      .setDesc(`笔记将保存到 ${this.plugin.settings.defaultFolder}/分类`)
+      .setName("分组")
+      .setDesc(`笔记将保存到 ${this.plugin.settings.defaultFolder}/分组`)
       .addDropdown((dropdown) => {
         for (const category of this.plugin.settings.categories) {
           dropdown.addOption(category, category);
