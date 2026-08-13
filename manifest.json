@@ -1,9 +1,9 @@
 {
   "id": "wechat-channels-importer",
   "name": "Input Collector",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "minAppVersion": "1.5.0",
-  "description": "Import individual WeChat Channels videos and public X posts with media and metadata.",
+  "description": "Collect WeChat Channels, public X posts, and Xiaohongshu notes with media and metadata.",
   "author": "xibao_classmate",
   "authorUrl": "https://github.com/Iris-lover",
   "isDesktopOnly": false

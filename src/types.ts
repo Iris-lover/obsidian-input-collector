@@ -13,6 +13,7 @@ export interface WeChatChannelsImporterSettings {
   downloadVideo: boolean;
   downloadCover: boolean;
   downloadXMedia: boolean;
+  downloadXhsMedia: boolean;
   importedSources: Record<string, ImportedRecord>;
 }
 
@@ -24,6 +25,12 @@ export interface ImportOptions {
 }
 
 export interface XImportOptions {
+  sourceUrl: string;
+  category: string;
+  downloadMedia: boolean;
+}
+
+export interface XhsImportOptions {
   sourceUrl: string;
   category: string;
   downloadMedia: boolean;

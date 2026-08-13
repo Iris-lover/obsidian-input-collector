@@ -17,6 +17,7 @@ const DEFAULT_SETTINGS: WeChatChannelsImporterSettings = {
   downloadVideo: true,
   downloadCover: true,
   downloadXMedia: true,
+  downloadXhsMedia: false,
   importedSources: {},
 };
 

@@ -103,9 +103,19 @@ export class WeChatChannelsImporterSettingTab extends PluginSettingTab {
         }),
       );
 
+    new Setting(containerEl)
+      .setName("小红书：默认下载媒体")
+      .setDesc("将笔记中的图片或视频保存到 Vault；默认关闭以节省空间")
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.downloadXhsMedia).onChange(async (value) => {
+          this.plugin.settings.downloadXhsMedia = value;
+          await this.plugin.saveSettings();
+        }),
+      );
+
     containerEl.createEl("p", {
       cls: "setting-item-description",
-      text: "隐私说明：视频号链接会发送到 wx_channels_download 的默认解析接口；X 链接会发送到 FxTwitter。媒体文件随后从对应平台 CDN 下载。两个接口都可以替换。",
+      text: "隐私说明：视频号链接会发送到 wx_channels_download 的默认解析接口；X 链接会发送到 FxTwitter；小红书由插件直接读取公开笔记页面。媒体文件随后按你的设置从对应平台 CDN 下载。",
     });
   }
 }
