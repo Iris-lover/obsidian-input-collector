@@ -156,7 +156,11 @@ export async function importVideo(
   }
 
   onProgress("正在解析视频号链接…");
-  const parsed = await parseWeChatChannelsVideo(settings.parserEndpoint, options.sourceUrl);
+  const parsed = await parseWeChatChannelsVideo(
+    settings.localParserEndpoint,
+    settings.parserEndpoint,
+    options.sourceUrl,
+  );
 
   const noteFolder = joinVaultPath(settings.defaultFolder, options.category);
   const mediaFolder = joinVaultPath(settings.defaultFolder, settings.mediaFolder);

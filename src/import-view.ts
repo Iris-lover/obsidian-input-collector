@@ -187,7 +187,7 @@ export class WeChatChannelsImporterView extends ItemView {
         ? `X 链接会发送到 ${this.plugin.settings.xApiEndpoint} 解析。媒体随后从 X CDN 下载。`
         : isXhs
           ? "插件会直接读取公开的小红书笔记页面；媒体按你的选择从小红书 CDN 下载。"
-          : `视频号链接会发送到 ${this.plugin.settings.parserEndpoint} 解析。视频随后从微信 CDN 下载。`,
+          : `视频号优先使用 ${this.plugin.settings.localParserEndpoint || "本地解析服务"}；失败后再调用备用接口。`,
     });
 
     this.progressEl = contentEl.createDiv({

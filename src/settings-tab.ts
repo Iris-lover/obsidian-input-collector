@@ -51,8 +51,21 @@ export class WeChatChannelsImporterSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("解析接口")
-      .setDesc("视频号解析接口；可替换为你自己部署的兼容接口")
+      .setName("视频号本地解析接口")
+      .setDesc("优先使用；需要启动 wx_video_download 并配置 cloudflare.sphCookie")
+      .addText((text) =>
+        text
+          .setPlaceholder("http://127.0.0.1:2022/api/channels/parse_sph")
+          .setValue(this.plugin.settings.localParserEndpoint)
+          .onChange(async (value) => {
+            this.plugin.settings.localParserEndpoint = value.trim();
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("视频号备用解析接口")
+      .setDesc("本地服务不可用时调用；公共服务可能临时失效，也可以替换为自建 Worker")
       .addText((text) =>
         text
           .setValue(this.plugin.settings.parserEndpoint)
@@ -115,7 +128,7 @@ export class WeChatChannelsImporterSettingTab extends PluginSettingTab {
 
     containerEl.createEl("p", {
       cls: "setting-item-description",
-      text: "隐私说明：视频号链接会发送到 wx_channels_download 的默认解析接口；X 链接会发送到 FxTwitter；小红书由插件直接读取公开笔记页面。媒体文件随后按你的设置从对应平台 CDN 下载。",
+      text: "隐私说明：视频号会优先请求你电脑上的本地服务；仅在本地服务失败时才会发送到备用接口。X 链接会发送到 FxTwitter；小红书由插件直接读取公开笔记页面。媒体文件随后按你的设置从对应平台 CDN 下载。",
     });
   }
 }

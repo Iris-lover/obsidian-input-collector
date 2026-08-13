@@ -2,7 +2,7 @@
 
 把单条微信视频号、公开 X 帖子或小红书笔记保存到 Obsidian。三种来源共用一个可停靠的侧边栏、同一套 `6-Input` 分组和重复检测。
 
-> 当前本地版本：`1.4.0`
+> 当前本地版本：`1.5.0`
 >
 > 当前状态：仅本地使用，未提交 Obsidian 社区市场
 
@@ -74,13 +74,21 @@
 
 插件没有遥测、广告、付费功能或用户账号，只会在你主动导入时联网。
 
-- 视频号链接默认发送到 `https://sph.litao.workers.dev/api/fetch_video_profile`，随后从微信 CDN 下载媒体。
+- 视频号优先请求本地 `wx_video_download`：`http://127.0.0.1:2022/api/channels/parse_sph`。
+- 本地服务不可用时，才会请求备用解析接口；默认是公共 Worker，也可以在设置中替换为自建 Worker。
 - X 链接默认发送到 `https://api.fxtwitter.com`，随后从 X CDN 下载媒体。
 - 小红书链接由插件直接读取公开笔记页面，媒体按你的设置从小红书 CDN 下载。
 - 两个解析地址都可以在插件设置中替换。
 - 笔记、媒体与导入记录仅保存在你的 Vault 和插件数据中。
 
 FxTwitter 是第三方开源服务，与 X 或 Obsidian 没有隶属关系。请只保存和使用你有权下载的内容。
+
+## 视频号本地解析
+
+1. 从 `wx_channels_download` 官方 Releases 下载与你系统匹配的版本。
+2. 在程序同目录的 `config.yaml` 中设置 `cloudflare.sphCookie`。Cookie 来自你自己登录的元宝网页，属于敏感凭证，不要提交到 GitHub 或分享给别人。
+3. 启动 `wx_video_download`，确认本地 API 监听在 `127.0.0.1:2022`。
+4. Input Collector 会自动优先调用本地服务；本地与备用接口都失败时，提示中会分别显示失败原因。
 
 ## 开发
 

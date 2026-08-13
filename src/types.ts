@@ -8,6 +8,7 @@ export interface WeChatChannelsImporterSettings {
   mediaFolder: string;
   categories: string[];
   lastCategory: string;
+  localParserEndpoint: string;
   parserEndpoint: string;
   xApiEndpoint: string;
   downloadVideo: boolean;
@@ -50,6 +51,7 @@ export interface FeedInfo {
   createtime?: number | string;
   coverUrl?: string;
   videoUrl?: string;
+  originVideoUrl?: string;
   h264VideoInfo?: VideoVariant;
   h265VideoInfo?: VideoVariant;
   likeCountFmt?: string;
@@ -64,6 +66,7 @@ export interface ParserResponse {
     feedInfo?: FeedInfo;
   };
   error?: string;
+  msg?: string;
 }
 
 export interface ParsedVideo {

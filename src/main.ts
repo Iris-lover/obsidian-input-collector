@@ -12,6 +12,7 @@ const DEFAULT_SETTINGS: WeChatChannelsImporterSettings = {
   mediaFolder: "_attachments/wechat-channels",
   categories: ["AI", "Design", "Work", "English", "Earn money", "Content"],
   lastCategory: "Earn money",
+  localParserEndpoint: "http://127.0.0.1:2022/api/channels/parse_sph",
   parserEndpoint: "https://sph.litao.workers.dev/api/fetch_video_profile",
   xApiEndpoint: "https://api.fxtwitter.com",
   downloadVideo: true,
