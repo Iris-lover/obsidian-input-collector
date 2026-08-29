@@ -87,6 +87,82 @@ export class WeChatChannelsImporterSettingTab extends PluginSettingTab {
           }),
       );
 
+    containerEl.createEl("h3", { text: "YouTube（桌面版）" });
+
+    new Setting(containerEl)
+      .setName("yt-dlp 路径")
+      .setDesc("Input Collector 用这个本机程序读取并下载 YouTube")
+      .addText((text) =>
+        text
+          .setPlaceholder("/usr/local/bin/yt-dlp")
+          .setValue(this.plugin.settings.youtubeYtDlpPath)
+          .onChange(async (value) => {
+            this.plugin.settings.youtubeYtDlpPath = value.trim() || "yt-dlp";
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("YouTube 验证方式")
+      .setDesc("WPC 不读取账号 Cookie；若被 YouTube 拦截，可主动改用浏览器 Cookie")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("wpc", "WPC 浏览器 Token（推荐）")
+          .addOption("none", "不验证")
+          .addOption("chrome", "Chrome Cookie")
+          .addOption("safari", "Safari Cookie")
+          .addOption("firefox", "Firefox Cookie")
+          .setValue(this.plugin.settings.youtubeVerificationMode)
+          .onChange(async (value) => {
+            this.plugin.settings.youtubeVerificationMode = value as typeof this.plugin.settings.youtubeVerificationMode;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("YouTube：最高画质")
+      .setDesc("更高画质占用更多 Vault 与同步空间")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("720", "720p")
+          .addOption("1080", "1080p")
+          .addOption("1440", "1440p")
+          .addOption("2160", "2160p / 4K")
+          .setValue(this.plugin.settings.youtubeMaxHeight)
+          .onChange(async (value) => {
+            this.plugin.settings.youtubeMaxHeight = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("YouTube：默认下载视频")
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.downloadYoutubeVideo).onChange(async (value) => {
+          this.plugin.settings.downloadYoutubeVideo = value;
+          await this.plugin.saveSettings();
+        }),
+      );
+
+    new Setting(containerEl)
+      .setName("YouTube：默认下载封面")
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.downloadYoutubeCover).onChange(async (value) => {
+          this.plugin.settings.downloadYoutubeCover = value;
+          await this.plugin.saveSettings();
+        }),
+      );
+
+    new Setting(containerEl)
+      .setName("YouTube：默认下载字幕")
+      .setDesc("保存可用的中英文 VTT 字幕")
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.downloadYoutubeSubtitles).onChange(async (value) => {
+          this.plugin.settings.downloadYoutubeSubtitles = value;
+          await this.plugin.saveSettings();
+        }),
+      );
+
     new Setting(containerEl)
       .setName("视频号：默认下载视频")
       .setDesc("将 MP4 保存进 Vault，避免临时地址失效")
@@ -128,7 +204,7 @@ export class WeChatChannelsImporterSettingTab extends PluginSettingTab {
 
     containerEl.createEl("p", {
       cls: "setting-item-description",
-      text: "隐私说明：视频号会优先请求你电脑上的本地服务；仅在本地服务失败时才会发送到备用接口。X 链接会发送到 FxTwitter；小红书由插件直接读取公开笔记页面。媒体文件随后按你的设置从对应平台 CDN 下载。",
+      text: "隐私说明：视频号会优先请求你电脑上的本地服务；仅在本地服务失败时才会发送到备用接口。X 链接会发送到 FxTwitter；小红书由插件直接读取公开笔记页面；YouTube 由本机 yt-dlp 处理。只有你主动选择浏览器 Cookie 模式时，yt-dlp 才会读取对应浏览器的登录状态。媒体文件随后按你的设置下载。",
     });
   }
 }

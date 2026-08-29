@@ -15,8 +15,16 @@ export interface WeChatChannelsImporterSettings {
   downloadCover: boolean;
   downloadXMedia: boolean;
   downloadXhsMedia: boolean;
+  youtubeYtDlpPath: string;
+  youtubeVerificationMode: YoutubeVerificationMode;
+  downloadYoutubeVideo: boolean;
+  downloadYoutubeCover: boolean;
+  downloadYoutubeSubtitles: boolean;
+  youtubeMaxHeight: string;
   importedSources: Record<string, ImportedRecord>;
 }
+
+export type YoutubeVerificationMode = "wpc" | "chrome" | "firefox" | "safari" | "none";
 
 export interface ImportOptions {
   sourceUrl: string;
@@ -35,6 +43,28 @@ export interface XhsImportOptions {
   sourceUrl: string;
   category: string;
   downloadMedia: boolean;
+}
+
+export interface YoutubeImportOptions {
+  sourceUrl: string;
+  category: string;
+  downloadVideo: boolean;
+  downloadCover: boolean;
+  downloadSubtitles: boolean;
+}
+
+export interface ParsedYoutubeVideo {
+  sourceUrl: string;
+  sourceId: string;
+  title: string;
+  description: string;
+  author: string;
+  channelUrl: string;
+  createdAt: Date | null;
+  durationSeconds: number;
+  thumbnailUrl: string;
+  views: string;
+  likes: string;
 }
 
 export interface AuthorInfo {

@@ -1,8 +1,8 @@
 # Input Collector
 
-把单条微信视频号、公开 X 帖子或小红书笔记保存到 Obsidian。三种来源共用一个可停靠的侧边栏、同一套 `6-Input` 分组和重复检测。
+把单条微信视频号、公开 X 帖子、小红书笔记或 YouTube 视频保存到 Obsidian。四种来源共用一个可停靠的侧边栏、同一套 `6-Input` 分组和重复检测。
 
-> 当前本地版本：`1.5.0`
+> 当前版本：`1.6.0`
 >
 > 当前状态：仅本地使用，未提交 Obsidian 社区市场
 
@@ -30,10 +30,18 @@
 - 可选择保留远程媒体，或下载到 `6-Input/_attachments/xiaohongshu/`。
 - 私密、已删除、仅登录可见或触发平台验证的笔记无法导入。
 
+### YouTube
+
+- 接受 `youtube.com/watch`、`youtu.be`、Shorts、直播和嵌入页的单条视频链接。
+- 通过电脑上的 `yt-dlp` 读取标题、频道、简介、日期、时长和互动数据。
+- 可下载最高 720p、1080p、1440p 或 4K 的视频，并保存封面及中英文 VTT 字幕。
+- YouTube 媒体默认下载到 `6-Input/_attachments/youtube/`。
+- YouTube 离线导入只支持 Obsidian 桌面版；其他三个来源仍可按原方式使用。
+
 ## 使用方法
 
 1. 在 Obsidian 左侧功能区点击收件箱图标，打开右侧 **Input Collector**。
-2. 在“来源”中选择“微信视频号”“X”或“小红书”。
+2. 在“来源”中选择“微信视频号”“X”“小红书”或“YouTube”。
 3. 粘贴单条内容链接。
 4. 选择 `6-Input` 下的分组，例如 `Earn money`。点击右侧的管理按钮，可以新增、重命名或移除分组。
 5. 选择是否下载媒体，然后点击导入。
@@ -65,9 +73,13 @@
     ├── x/
         ├── 帖子ID-1.jpg
         └── 帖子ID-2.mp4
-    └── xiaohongshu/
+    ├── xiaohongshu/
         ├── 笔记ID-1.jpg
         └── 笔记ID-2.mp4
+    └── youtube/
+        ├── 视频ID.mp4
+        ├── 视频ID.jpg
+        └── 视频ID.zh-Hans.vtt
 ```
 
 ## 网络与隐私
@@ -78,10 +90,32 @@
 - 本地服务不可用时，才会请求备用解析接口；默认是公共 Worker，也可以在设置中替换为自建 Worker。
 - X 链接默认发送到 `https://api.fxtwitter.com`，随后从 X CDN 下载媒体。
 - 小红书链接由插件直接读取公开笔记页面，媒体按你的设置从小红书 CDN 下载。
-- 两个解析地址都可以在插件设置中替换。
+- YouTube 链接由电脑上的 `yt-dlp` 处理。默认使用 WPC 生成临时 PO Token；只有你在设置中主动选择 Cookie 模式时，`yt-dlp` 才会读取对应浏览器的 YouTube 登录状态。
+- 视频号与 X 的解析地址可以在插件设置中替换；YouTube 可以配置 `yt-dlp` 路径、验证方式和最高画质。
 - 笔记、媒体与导入记录仅保存在你的 Vault 和插件数据中。
 
 FxTwitter 是第三方开源服务，与 X 或 Obsidian 没有隶属关系。请只保存和使用你有权下载的内容。
+
+## YouTube 本地下载
+
+YouTube 功能依赖本机安装的 `yt-dlp`、`ffmpeg` 和 Node.js，插件不会将这些二进制文件打包进 Vault。其他平台功能不依赖这些工具。
+
+当前测试环境使用：
+
+- `yt-dlp 2026.08.19`
+- `ffmpeg`
+- Node.js JavaScript runtime
+- `yt-dlp-getpot-wpc 1.1.2`
+
+在插件设置的 **YouTube（桌面版）** 中可以修改 `yt-dlp` 路径、验证方式和最高画质。验证顺序建议如下：
+
+1. 先使用 **WPC 浏览器 Token**，它不会读取账号 Cookie。
+2. 如果出现“确认你不是机器人”或 WPC 超时，再由用户主动选择 **Chrome Cookie**。
+3. Cookie 由 `yt-dlp` 在本机使用，不会写进笔记、插件数据或 GitHub。
+
+Chrome Cookie 模式会自动启用 yt-dlp 官方 EJS 挑战组件，并使用已在 macOS 上实测成功的 `web_safari` HLS 下载路径。
+
+YouTube 会持续调整下载验证规则，因此应保持 `yt-dlp` 和 PO Token 插件为最新版本。
 
 ## 视频号本地解析
 

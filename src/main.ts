@@ -19,6 +19,12 @@ const DEFAULT_SETTINGS: WeChatChannelsImporterSettings = {
   downloadCover: true,
   downloadXMedia: true,
   downloadXhsMedia: false,
+  youtubeYtDlpPath: "/Library/Frameworks/Python.framework/Versions/3.11/bin/yt-dlp",
+  youtubeVerificationMode: "wpc",
+  downloadYoutubeVideo: true,
+  downloadYoutubeCover: true,
+  downloadYoutubeSubtitles: true,
+  youtubeMaxHeight: "1080",
   importedSources: {},
 };
 
