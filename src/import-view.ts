@@ -14,6 +14,7 @@ import type {
   XImportOptions,
   XhsImportOptions,
   YoutubeImportOptions,
+  DouyinImportOptions,
 } from "./types";
 import { extractXLink } from "./x-parser";
 import { runXImport } from "./x-import-runner";
@@ -22,9 +23,11 @@ import { extractXhsLink } from "./xhs-parser";
 import { runXhsImport } from "./xhs-import-runner";
 import { extractYoutubeLink } from "./youtube-parser";
 import { runYoutubeImport } from "./youtube-import-runner";
+import { extractDouyinLink } from "./douyin-parser";
+import { runDouyinImport } from "./douyin-import-runner";
 
 export const WECHAT_CHANNELS_IMPORTER_VIEW = "wechat-channels-importer-view";
-type InputPlatform = "wechat" | "x" | "xhs" | "youtube";
+type InputPlatform = "wechat" | "x" | "xhs" | "youtube" | "douyin";
 
 export class WeChatChannelsImporterView extends ItemView {
   private platform: InputPlatform = "wechat";
@@ -34,6 +37,8 @@ export class WeChatChannelsImporterView extends ItemView {
   private downloadCover = true;
   private downloadXMedia = true;
   private downloadXhsMedia = false;
+  private downloadDouyinMedia = true;
+  private downloadDouyinCover = true;
   private downloadYoutubeVideo = true;
   private downloadYoutubeCover = true;
   private downloadYoutubeSubtitles = true;
@@ -70,6 +75,8 @@ export class WeChatChannelsImporterView extends ItemView {
     this.downloadCover = this.plugin.settings.downloadCover;
     this.downloadXMedia = this.plugin.settings.downloadXMedia;
     this.downloadXhsMedia = this.plugin.settings.downloadXhsMedia;
+    this.downloadDouyinMedia = this.plugin.settings.downloadDouyinMedia;
+    this.downloadDouyinCover = this.plugin.settings.downloadDouyinCover;
     this.downloadYoutubeVideo = this.plugin.settings.downloadYoutubeVideo;
     this.downloadYoutubeCover = this.plugin.settings.downloadYoutubeCover;
     this.downloadYoutubeSubtitles = this.plugin.settings.downloadYoutubeSubtitles;
@@ -90,7 +97,7 @@ export class WeChatChannelsImporterView extends ItemView {
     });
     header.createEl("h3", { text: "Input Collector" });
     header.createEl("p", {
-      text: "把视频号、X、小红书与 YouTube 的单条内容统一收进 Obsidian。",
+      text: "把视频号、X、小红书、抖音与 YouTube 的单条内容统一收进 Obsidian。",
     });
 
     new Setting(contentEl)
@@ -101,6 +108,7 @@ export class WeChatChannelsImporterView extends ItemView {
           .addOption("wechat", "微信视频号")
           .addOption("x", "X")
           .addOption("xhs", "小红书")
+          .addOption("douyin", "抖音")
           .addOption("youtube", "YouTube")
           .setValue(this.platform)
           .onChange((value) => {
@@ -111,6 +119,7 @@ export class WeChatChannelsImporterView extends ItemView {
 
     const isX = this.platform === "x";
     const isXhs = this.platform === "xhs";
+    const isDouyin = this.platform === "douyin";
     const isYoutube = this.platform === "youtube";
     new Setting(contentEl)
       .setName(
@@ -118,18 +127,22 @@ export class WeChatChannelsImporterView extends ItemView {
           ? "X 帖子链接"
           : isXhs
             ? "小红书分享链接或文案"
-            : isYoutube
-              ? "YouTube 视频链接"
-              : "视频号分享链接",
+            : isDouyin
+              ? "抖音分享链接"
+              : isYoutube
+                ? "YouTube 视频链接"
+                : "视频号分享链接",
       )
       .setDesc(
         isX
           ? "支持 x.com 或 twitter.com 的 status 链接"
           : isXhs
             ? "支持 xhslink.com 短链接及小红书公开笔记链接"
-            : isYoutube
-              ? "支持 youtube.com、youtu.be、Shorts 与直播回放的单条链接"
-            : "支持 weixin.qq.com/sph/…",
+            : isDouyin
+              ? "支持 v.douyin.com 短链接及 douyin.com 视频链接"
+              : isYoutube
+                ? "支持 youtube.com、youtu.be、Shorts 与直播回放的单条链接"
+              : "支持 weixin.qq.com/sph/…",
       )
       .addTextArea((text) => {
         this.sourceInput = text;
@@ -139,9 +152,11 @@ export class WeChatChannelsImporterView extends ItemView {
               ? "https://x.com/username/status/…"
               : isXhs
                 ? "粘贴小红书分享文案或链接…"
-                : isYoutube
-                  ? "https://youtu.be/…"
-                : "https://weixin.qq.com/sph/…",
+                : isDouyin
+                  ? "https://v.douyin.com/… 或粘贴分享文案"
+                  : isYoutube
+                    ? "https://youtu.be/…"
+                  : "https://weixin.qq.com/sph/…",
           )
           .setValue(this.sourceUrl)
           .onChange((value) => {
@@ -206,6 +221,35 @@ export class WeChatChannelsImporterView extends ItemView {
             this.downloadXhsMedia = value;
           }),
         );
+    } else if (isDouyin) {
+      new Setting(contentEl)
+        .setName("抖音 Cookie")
+        .setDesc("从浏览器复制你的抖音 Cookie；也可在插件设置中填写")
+        .addTextArea((text) =>
+          text
+            .setPlaceholder("粘贴你的抖音 Cookie…")
+            .setValue(this.plugin.settings.douyinCookie)
+            .onChange(async (value) => {
+              this.plugin.settings.douyinCookie = value.trim();
+              await this.plugin.saveSettings();
+            }),
+        );
+      new Setting(contentEl)
+        .setName("下载抖音媒体")
+        .setDesc("把无水印视频或图集保存到 Vault")
+        .addToggle((toggle) =>
+          toggle.setValue(this.downloadDouyinMedia).onChange((value) => {
+            this.downloadDouyinMedia = value;
+          }),
+        );
+      new Setting(contentEl)
+        .setName("下载封面")
+        .setDesc("保存视频封面图；失败时笔记仍会使用在线封面")
+        .addToggle((toggle) =>
+          toggle.setValue(this.downloadDouyinCover).onChange((value) => {
+            this.downloadDouyinCover = value;
+          }),
+        );
     } else if (isX) {
       new Setting(contentEl)
         .setName("下载 X 媒体")
@@ -240,6 +284,8 @@ export class WeChatChannelsImporterView extends ItemView {
         ? `X 链接会发送到 ${this.plugin.settings.xApiEndpoint} 解析。媒体随后从 X CDN 下载。`
         : isXhs
           ? "插件会直接读取公开的小红书笔记页面；媒体按你的选择从小红书 CDN 下载。"
+          : isDouyin
+            ? "插件直接读取抖音页面并提取无水印地址；需要在设置中填入你的抖音 Cookie。"
           : isYoutube
             ? Platform.isDesktopApp
               ? `YouTube 由本机 yt-dlp 下载；当前验证方式：${this.plugin.settings.youtubeVerificationMode}。登录 Cookie 仅在你主动选择 Cookie 模式后使用。`
@@ -256,7 +302,7 @@ export class WeChatChannelsImporterView extends ItemView {
     });
     this.submitButton = new ButtonComponent(actions)
       .setButtonText(
-        `导入${isX ? " X" : isXhs ? "小红书" : isYoutube ? " YouTube" : "视频号"}内容`,
+        `导入${isX ? " X" : isXhs ? "小红书" : isDouyin ? "抖音" : isYoutube ? " YouTube" : "视频号"}内容`,
       )
       .setCta()
       .onClick(() => void this.submit());
@@ -266,6 +312,7 @@ export class WeChatChannelsImporterView extends ItemView {
     if (this.running) return;
     const isX = this.platform === "x";
     const isXhs = this.platform === "xhs";
+    const isDouyin = this.platform === "douyin";
     const isYoutube = this.platform === "youtube";
     if (isYoutube && !Platform.isDesktopApp) {
       const message = "YouTube 离线导入目前只支持 Obsidian 桌面版";
@@ -277,17 +324,21 @@ export class WeChatChannelsImporterView extends ItemView {
       ? extractXLink(this.sourceUrl) !== null
       : isXhs
         ? extractXhsLink(this.sourceUrl) !== null
-        : isYoutube
-          ? extractYoutubeLink(this.sourceUrl) !== null
-        : /^https:\/\/weixin\.qq\.com\/sph\/[A-Za-z0-9_-]+/.test(this.sourceUrl);
+        : isDouyin
+          ? extractDouyinLink(this.sourceUrl) !== null
+          : isYoutube
+            ? extractYoutubeLink(this.sourceUrl) !== null
+          : /^https:\/\/weixin\.qq\.com\/sph\/[A-Za-z0-9_-]+/.test(this.sourceUrl);
     if (!valid) {
       const message = isX
         ? "请输入有效的 X 帖子链接"
         : isXhs
           ? "请输入有效的小红书分享文案或链接"
-          : isYoutube
-            ? "请输入有效的 YouTube 单条视频链接"
-          : "请输入有效的视频号分享链接";
+          : isDouyin
+            ? "请输入有效的抖音分享链接"
+            : isYoutube
+              ? "请输入有效的 YouTube 单条视频链接"
+            : "请输入有效的视频号分享链接";
       new Notice(message);
       this.progressEl?.setText(message);
       return;
@@ -316,6 +367,17 @@ export class WeChatChannelsImporterView extends ItemView {
               } satisfies XhsImportOptions,
               (message) => this.progressEl?.setText(message),
             )
+          : isDouyin
+            ? await runDouyinImport(
+                this.plugin,
+                {
+                  sourceUrl: this.sourceUrl,
+                  category: this.category,
+                  downloadMedia: this.downloadDouyinMedia,
+                  downloadCover: this.downloadDouyinCover,
+                } satisfies DouyinImportOptions,
+                (message) => this.progressEl?.setText(message),
+              )
           : isYoutube
             ? await runYoutubeImport(
                 this.plugin,
@@ -345,7 +407,7 @@ export class WeChatChannelsImporterView extends ItemView {
       } else {
         this.progressEl?.setText(`已保存：${result.note.path}`);
         new Notice(
-          `${isX ? "X" : isXhs ? "小红书" : isYoutube ? "YouTube" : "视频号"}内容已保存到 Obsidian`,
+          `${isX ? "X" : isXhs ? "小红书" : isDouyin ? "抖音" : isYoutube ? "YouTube" : "视频号"}内容已保存到 Obsidian`,
         );
       }
       this.sourceUrl = "";

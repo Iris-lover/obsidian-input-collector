@@ -15,6 +15,9 @@ export interface WeChatChannelsImporterSettings {
   downloadCover: boolean;
   downloadXMedia: boolean;
   downloadXhsMedia: boolean;
+  douyinCookie: string;
+  downloadDouyinMedia: boolean;
+  downloadDouyinCover: boolean;
   youtubeYtDlpPath: string;
   youtubeVerificationMode: YoutubeVerificationMode;
   downloadYoutubeVideo: boolean;
@@ -43,6 +46,13 @@ export interface XhsImportOptions {
   sourceUrl: string;
   category: string;
   downloadMedia: boolean;
+}
+
+export interface DouyinImportOptions {
+  sourceUrl: string;
+  category: string;
+  downloadMedia: boolean;
+  downloadCover: boolean;
 }
 
 export interface YoutubeImportOptions {

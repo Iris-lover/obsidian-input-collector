@@ -1,7 +1,7 @@
 {
   "name": "obsidian-wechat-channels-importer",
-  "version": "1.6.0",
-  "description": "Import WeChat Channels, public X posts, Xiaohongshu notes, and YouTube videos into Obsidian.",
+  "version": "1.7.0",
+  "description": "Import WeChat Channels, public X posts, Xiaohongshu notes, YouTube videos, and Douyin videos into Obsidian.",
   "main": "main.js",
   "scripts": {
     "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",

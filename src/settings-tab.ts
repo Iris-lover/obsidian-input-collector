@@ -87,6 +87,40 @@ export class WeChatChannelsImporterSettingTab extends PluginSettingTab {
           }),
       );
 
+    containerEl.createEl("h3", { text: "抖音" });
+
+    new Setting(containerEl)
+      .setName("抖音 Cookie")
+      .setDesc("从浏览器复制你的抖音 Cookie，用于解析和下载无水印媒体")
+      .addTextArea((text) =>
+        text
+          .setPlaceholder("粘贴你的抖音 Cookie…")
+          .setValue(this.plugin.settings.douyinCookie)
+          .onChange(async (value) => {
+            this.plugin.settings.douyinCookie = value.trim();
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("抖音：默认下载媒体")
+      .setDesc("将无水印视频或图集保存到 Vault")
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.downloadDouyinMedia).onChange(async (value) => {
+          this.plugin.settings.downloadDouyinMedia = value;
+          await this.plugin.saveSettings();
+        }),
+      );
+
+    new Setting(containerEl)
+      .setName("抖音：默认下载封面")
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.downloadDouyinCover).onChange(async (value) => {
+          this.plugin.settings.downloadDouyinCover = value;
+          await this.plugin.saveSettings();
+        }),
+      );
+
     containerEl.createEl("h3", { text: "YouTube（桌面版）" });
 
     new Setting(containerEl)
@@ -204,7 +238,7 @@ export class WeChatChannelsImporterSettingTab extends PluginSettingTab {
 
     containerEl.createEl("p", {
       cls: "setting-item-description",
-      text: "隐私说明：视频号会优先请求你电脑上的本地服务；仅在本地服务失败时才会发送到备用接口。X 链接会发送到 FxTwitter；小红书由插件直接读取公开笔记页面；YouTube 由本机 yt-dlp 处理。只有你主动选择浏览器 Cookie 模式时，yt-dlp 才会读取对应浏览器的登录状态。媒体文件随后按你的设置下载。",
+      text: "隐私说明：视频号会优先请求你电脑上的本地服务；仅在本地服务失败时才会发送到备用接口。X 链接会发送到 FxTwitter；小红书由插件直接读取公开笔记页面；抖音由插件直接读取页面，Cookie 仅发送到抖音服务器；YouTube 由本机 yt-dlp 处理。只有你主动选择浏览器 Cookie 模式时，yt-dlp 才会读取对应浏览器的登录状态。媒体文件随后按你的设置下载。",
     });
   }
 }
